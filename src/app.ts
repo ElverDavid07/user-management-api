@@ -1,0 +1,21 @@
+import "dotenv/config";
+import helmet from "helmet";
+import morgan from "morgan";
+import express from "express";
+import cors from "cors";
+import userRoutes from "./routes/user";
+import authRoutes from "./routes/auth";
+import rolesRoutes from "./routes/roles";
+import { connectdb } from "./config/connectdb";
+
+const PORT = process.env.PORT || 3000;
+const app = express();
+app.use(express.json());
+app.use(cors());
+app.use(helmet());
+app.use(morgan("dev"));
+connectdb();
+app.use("/api", userRoutes);
+app.use("/api", rolesRoutes);
+app.use("/auth", authRoutes);
+app.listen(PORT, () => console.log(`running in http://localhost:${PORT}`));
