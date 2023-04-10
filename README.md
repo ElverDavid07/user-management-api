@@ -15,8 +15,9 @@ API para la gestión de usuarios.
 1. Clona este repositorio
 2. Instala las dependencias utilizando el manejador de dependencias pnpm o npm:
 
+```
 pnpm install o npm install
-
+```
 3. Crea un archivo `.env` en la raíz del proyecto y agrega las variables de entorno necesarias
 
 ## Variables de entorno
@@ -30,4 +31,6 @@ pnpm install o npm install
 
 4. Inicia el servidor:
 
+```
 npm run start o pnpm start
+```
