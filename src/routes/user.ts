@@ -1,12 +1,13 @@
 import { Router } from "express";
-import { getUser, getUsers, userUpdate } from "../controllers/user.controller";
+import { getUserController, getUsersController, userUpdateController } from "../controllers/user.controller";
+import { ProtectRutesRole } from "../middlewares/ProtectRoutesRole";
 
 import { checkSession } from "../middlewares/session";
 
 const router = Router();
 
-router.get("/users", checkSession, getUsers);
-router.get("/user/:id", getUser);
-router.put("/user/:id",userUpdate)
+router.get("/users", checkSession,ProtectRutesRole, getUsersController);
+router.get("/user/:id",checkSession, getUserController);
+router.put("/user/:id",checkSession,userUpdateController)
 
 export default router;

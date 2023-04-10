@@ -31,7 +31,7 @@ const userValidator = [
   check("password")
     .trim()
     .isString()
-    .isLength({ min: 4, max: 20 })
+    .isLength({ min: 4 })
     .withMessage("la contraseña tiene que ser mayor a 4 digitos"),
 
   (req: Request, res: Response, next: NextFunction) => {
