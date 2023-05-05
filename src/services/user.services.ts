@@ -4,30 +4,22 @@ import { userModel } from "../models/user.model";
 import { Auth } from "../interfaces/auth.interface";
 import { User } from "../interfaces/user.interface";
 import { generateToken } from "../jwt/jdwHandle";
-import { yellow, whiteBright } from "console-log-colors";
-import { rolesModel } from "../models/role.model";
+import { optionCookie } from "../config/optionCookie";
+import { serialize } from "cookie";
+import { getFromCache, setToCache } from "../cache/handleCache";
 
-//*cache agregado a la ruta de obtener todo los usuarios para optimizar el tiempo de respuesta
-const cache = new NodeCache({ stdTTL: 60 });
 const cacheKey = "users";
 
 //* -----obtener todos los usuarios-----
-const getAllusers = async (option: object,user:User) => {
-
- const response = await userModel.paginate({}, option);
+const getAllusers = async (option: object) => {
  //add cache
- const cacheUsers = cache.get(cacheKey);
- if (cacheUsers) {
-  console.log(
-   `${yellow.bold("CACHE")} - infomacion de usuarios retornada desde ${whiteBright.bold("CACHE")} `
-  );
-  return cacheUsers;
+ const CacheUsers = getFromCache(cacheKey);
+ if (CacheUsers) {
+  return CacheUsers;
  } else {
-  cache.set(cacheKey, response);
-  console.log(
-   `${yellow.bold("DB")} - infomacion de usuarios retornada desde la ${whiteBright.bold("DB")}`
-  );
-  return response;
+  const UserList = await userModel.paginate({}, option);
+  setToCache(cacheKey, UserList);
+  return UserList;
  }
 };
 
@@ -39,8 +31,8 @@ const getUserById = async (id: string) => {
 
 //* -----registrar un nuevo usuario, con la contraseña encryptada-----
 const registerNewUser = async ({ email, password, name, state, role }: User) => {
- const checkIs = await userModel.findOne({ email });
- if (checkIs) return "El usuario ya existe!";
+ const userExists = await userModel.findOne({ email });
+ if (userExists) return "El usuario ya existe!";
 
  const passwordEncrypt = await encryptPassword(password);
  const response = userModel.create({
@@ -51,12 +43,12 @@ const registerNewUser = async ({ email, password, name, state, role }: User) => 
   role,
  });
 
- const token = await generateToken((await response).email);
-
+ const token = await generateToken((await response)._id);
+ const cookie = serialize("token", token, optionCookie);
  const allGood = {
   message: "Cuenta creada correctamente",
   userId: (await response)._id,
-  token,
+  cookie,
  };
 
  return allGood;
@@ -64,19 +56,20 @@ const registerNewUser = async ({ email, password, name, state, role }: User) => 
 
 //* -----comparar si la contraseña es correcta para poder iniciar sesion-----
 const loginUser = async ({ email, password }: Auth) => {
- const checkIs = await userModel.findOne({ email });
- if (!checkIs) return "EL_USUARIO_NO_A_SIDO_REGISTRADO!";
+ const userExists = await userModel.findOne({ email });
+ if (!userExists) return "EL_USUARIO_NO_A_SIDO_REGISTRADO!";
 
- const PasswordEncrypt = checkIs?.password;
+ const PasswordEncrypt = userExists?.password;
  if (!PasswordEncrypt) return "CONTRASEÑA_ENCRYPTADA_NO_EXISTE";
 
  const passwordCompare = await comparePassword(password, PasswordEncrypt);
  if (!passwordCompare) return "CONTRASEÑA_INCORRECTA!";
- const token = await generateToken(checkIs.email);
-
+ const token = await generateToken(userExists._id);
+ const cookie = serialize("token", token, optionCookie);
  const data = {
-  token,
   message: "login successfuly",
+  userId: userExists._id,
+  cookie,
  };
 
  return data;

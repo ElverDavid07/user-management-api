@@ -10,11 +10,12 @@ import infoEmbarques from "./routes/infoEmbarque";
 import { connectdb } from "./config/connectdb";
 import { whiteBright, white, greenBright } from "console-log-colors";
 
+const prefix = greenBright.bold("server") //? colors in console
 const PORT = process.env.PORT || 3004;
 const app = express();
 //* middleware
 app.use(express.json());
-app.use(cors({origin:"http://localhost:3000",credentials:true}));
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(helmet());
 app.use(morgan("dev"));
 connectdb();
@@ -25,7 +26,7 @@ app.use("/api", infoEmbarques);
 app.use("/auth", authRoutes);
 app.listen(PORT, () =>
  console.log(
-  `${greenBright("server")} - ${white.bold("started server on")} ${whiteBright.underline(
+  `${prefix} - ${white.bold("started server on")} ${whiteBright.underline(
    `http://localhost:${PORT}`
   )} `
  )

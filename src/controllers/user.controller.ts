@@ -1,13 +1,15 @@
 import { serialize } from "cookie";
 import { Request, Response } from "express";
-import {optionCookieLogout } from "../config/optionCookie";
+import { optionCookieLogout } from "../config/optionCookie";
+import { ResponseType } from "../interfaces/Response.interface";
+import { httpError } from "../errors/httpError";
+import { paginationOptions } from "../config/optionPaginate";
 import {
  handleErrorGetUser,
  handleErrorUpdate,
  handleLoginResponse,
  handleRegisterResponse,
 } from "../errors/handleErrorUser";
-import { httpError } from "../errors/httpError";
 import {
  getAllusers,
  getUserById,
@@ -17,19 +19,17 @@ import {
 } from "../services/user.services";
 
 //* -----get-----
-const getUsersController = async ({ query,body }: Request, res: Response) => {
+const getUsersController = async ({ query }: Request, res: Response) => {
  try {
   //configuracion o opciones por defecto  de modulo de paginacion
-  const { page = 1, limit = 25 } = query;
+  const { page = paginationOptions.page, limit = paginationOptions.limit } = query;
 
   const option = {
+   ...paginationOptions,
    page: parseInt(page.toString(), 10),
    limit: parseInt(limit.toString(), 10),
-   sort: { createdAt: "desc" },
-   populate: { path: "role" },
-   select: "-password",
   };
-  const response = await getAllusers(option,body);
+  const response = await getAllusers(option);
   res.json(response);
  } catch (error) {
   httpError(res, "ERROR_GET_USERS", error);
@@ -62,9 +62,7 @@ const registerUserController = async ({ body }: Request, res: Response) => {
 const userLoginController = async ({ body }: Request, res: Response) => {
  try {
   const { email, password } = body;
-  const response = await loginUser({ email, password });
-
-  console.log(response);
+  const response: ResponseType = await loginUser({ email, password });
   //manejador de errores
   handleLoginResponse(res, response);
  } catch (error) {
@@ -72,15 +70,15 @@ const userLoginController = async ({ body }: Request, res: Response) => {
  }
 };
 //* ------post logout---------
-const logoutController = async(req: Request, res: Response) =>{
-    try {
-       const Cookie = serialize("token","",optionCookieLogout)
-       res.setHeader("Set-Cookie",Cookie)
-       res.json({message:"logout successfuly"})
-    } catch (error) {
-        httpError(res, "ERROR_LOGOUT", error);
-    }
-}
+const logoutController = async (req: Request, res: Response) => {
+ try {
+  const Cookie = serialize("token", "", optionCookieLogout);
+  res.setHeader("Set-Cookie", Cookie);
+  res.json({ message: "logout successfuly" });
+ } catch (error) {
+  httpError(res, "ERROR_LOGOUT", error);
+ }
+};
 
 //* -----put-----
 const userUpdateController = async ({ params, body }: Request, res: Response) => {
@@ -100,5 +98,5 @@ export {
  registerUserController,
  userLoginController,
  userUpdateController,
- logoutController
+ logoutController,
 };

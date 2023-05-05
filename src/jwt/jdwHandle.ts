@@ -1,8 +1,8 @@
 import { sign, verify } from "jsonwebtoken";
-
+import {Types} from 'mongoose'
 const JWT_SECRET = <string>process.env.JWT_SECRET;
-const generateToken = async (email: string) => {
-  const jwt = sign({ email }, JWT_SECRET, {
+const generateToken = async (id:Types.ObjectId ) => {
+  const jwt = sign({ id }, JWT_SECRET, {
     expiresIn: "24h",
   });
 

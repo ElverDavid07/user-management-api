@@ -7,7 +7,7 @@ import { checkSession } from "../middlewares/session";
 const router = Router();
 
 router.get("/users", checkSession,ProtectRutesRole, getUsersController);
-router.get("/user/:id",checkSession, getUserController);
+router.get("/user/:id", getUserController);
 router.put("/user/:id",checkSession,userUpdateController)
 
 export default router;
